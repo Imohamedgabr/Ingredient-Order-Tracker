@@ -10,6 +10,6 @@ class IngrediantNotificationLog extends Model
     use HasFactory;
 
     protected $fillable = [
-        'ingredient_id'
+        'ingrediant_id'
     ];
 }

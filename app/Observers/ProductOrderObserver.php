@@ -9,8 +9,14 @@ use App\Notifications\LowStockNotification;
 use Illuminate\Validation\ValidationException;
 
 class ProductOrderObserver
-{
-    public function created(ProductOrder $productOrder)
+{    
+    /**
+     * created
+     *
+     * @param  ProductOrder $productOrder
+     * @return void
+     */
+    public function created(ProductOrder $productOrder): void
     {
         $productOrder->product->ingredients->each(function ($ingredient) use ($productOrder) {
             $neededIngredientAmount = $productOrder->quantity * $ingredient->pivot->ingredient_amount;
@@ -27,14 +33,24 @@ class ProductOrderObserver
             ]);
             // if the ingredient is low on stock, notify the user
             if ($ingredient->current_stock_amount < ($ingredient->stock_capacity / 2)) {
-
                 $lastIngNotTime = IngrediantNotificationLog::where('ingrediant_id', $ingredient->id)->first();
                 
                 if($lastIngNotTime == null){
-                    User::first()->notify(new LowStockNotification($ingredient));
-                    IngrediantNotificationLog::create(['ingrediant_id'=> $ingredient->id]);
+                    $this->notifyUser($ingredient);
                 }
             }
         });
+    }
+    
+    /**
+     * notifyUser
+     *
+     * @param  mixed $ingredient
+     * @return void
+     */
+    public function notifyUser($ingredient): void
+    {
+        User::first()->notify(new LowStockNotification($ingredient));
+        IngrediantNotificationLog::create(['ingrediant_id'=> $ingredient->id]);
     }
 }
